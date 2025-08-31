@@ -1,26 +1,18 @@
 /** @type {import('next').NextConfig} */
-const isProd = process.env.NODE_ENV === 'production';
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
-  assetPrefix: isProd ? '/frontend' : '',
-  basePath: isProd ? '/frontend' : '',
+  output: 'export',
   poweredByHeader: false,
   generateEtags: false,
   compress: true,
   images: {
-    domains: [],
     unoptimized: true,
-    disableStaticImages: true,
-  },
-  experimental: {
-    optimizeCss: true,
-    optimizePackageImports: ['@heroicons/react', 'react-icons'],
+    domains: [],
   },
   compiler: {
-    // Enables the styled-components SWC transform
     styledComponents: true,
   },
+  trailingSlash: true,
   async rewrites() {
     return [
       {
