@@ -1,47 +1,37 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { aiService } from '../services/ai';
-import { QueryRequest } from '../types';
 
-export const askQuestion = async (req: Request, res: Response) => {
+export const askQuestion = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { query, models } = req.body as QueryRequest;
-
-    if (!query || !models || !Array.isArray(models) || models.length === 0) {
-      return res.status(400).json({
-        error: 'Invalid request. Please provide a query and at least one model.',
-      });
+    const { prompt, model } = req.body;
+    
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+    
+    if (!model) {
+      return res.status(400).json({ error: 'Model is required' });
     }
 
-    const responses = await Promise.all(
-      models.map((model) =>
-        aiService.generateResponse(query, model).catch((error) => ({
-          model,
-          text: `Error: ${error.message}`,
-          latency_ms: 0,
-          word_count: 0,
-        }))
-      )
-    );
-
-    res.json(responses);
+    console.log(`Generating response for model: ${model}`);
+    const response = await aiService.generateResponse(prompt, model);
+    console.log('Response generated successfully');
+    
+    return res.json(response);
   } catch (error) {
     console.error('Error in askQuestion:', error);
-    res.status(500).json({
-      error: 'An error occurred while processing your request',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    });
+    next(error);
   }
 };
 
-export const listModels = async (_req: Request, res: Response) => {
+export const listModels = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    console.log('Fetching available models');
     const models = aiService.getAvailableModels();
-    res.json({ models });
+    console.log('Available models:', models);
+    return res.json({ models });
   } catch (error) {
-    console.error('Error listing models:', error);
-    res.status(500).json({
-      error: 'Failed to fetch available models',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    });
+    console.error('Error in listModels:', error);
+    next(error);
   }
 };

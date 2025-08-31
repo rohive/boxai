@@ -1,5 +1,5 @@
-import { openAIService } from './openai';
-import { claudeService } from './claude';
+import { openAIService as OpenAIService } from './openai';
+import { claudeService as ClaudeService } from './claude';
 import { LLMResponse } from '../types';
 
 // Define model configuration type
@@ -49,8 +49,38 @@ type ModelKey = keyof typeof MODEL_MAP;
 
 export class AIService {
   private static instance: AIService;
+  private openAIService: typeof OpenAIService;
+  private claudeService: typeof ClaudeService;
 
-  private constructor() {}
+  private constructor() {
+    // Initialize with default values
+    this.openAIService = OpenAIService;
+    this.claudeService = ClaudeService;
+    this.initializeServices();
+  }
+
+  private initializeServices() {
+    try {
+      console.log('Initializing AI services...');
+      this.openAIService = OpenAIService;
+      this.claudeService = ClaudeService;
+      console.log('AI services initialized');
+    } catch (error) {
+      console.error('Failed to initialize AI services:', error);
+      throw new Error(`Failed to initialize AI services: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private getServices() {
+    // Lazy initialization if services aren't set
+    if (!this.openAIService || !this.claudeService) {
+      this.initializeServices();
+    }
+    return {
+      openAIService: this.openAIService,
+      claudeService: this.claudeService
+    };
+  }
 
   public static getInstance(): AIService {
     if (!AIService.instance) {
@@ -68,35 +98,48 @@ export class AIService {
     const modelConfig = MODEL_MAP[modelKey];
 
     if (!modelConfig) {
+      console.error(`Unsupported model: ${model}`);
       throw new Error(`Unsupported model: ${model}`);
     }
 
     let text: string;
+    const { openAIService, claudeService } = this.getServices();
 
+    console.log(`Generating response with model: ${model} (${modelConfig.id})`);
+    
     try {
       if (modelConfig.service === 'openai') {
+        console.log('Using OpenAI service');
         text = await openAIService.generateResponse(prompt, modelConfig.id);
       } else if (modelConfig.service === 'claude') {
+        console.log('Using Claude service');
         text = await claudeService.generateResponse(prompt, modelConfig.id);
       } else {
-        throw new Error(`Unsupported service: ${modelConfig.service}`);
+        const errorMsg = `Unsupported service: ${modelConfig.service}`;
+        console.error(errorMsg);
+        throw new Error(errorMsg);
       }
 
       const endTime = Date.now();
       const latency_ms = endTime - startTime;
       const word_count = text.split(/\s+/).length;
 
+      console.log(`Response generated in ${latency_ms}ms (${word_count} words)`);
+
       return {
-        model: modelConfig.displayName,
+        model,
         text,
         latency_ms,
         word_count,
       };
     } catch (error) {
-      console.error(`Error generating response for ${model}:`, error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`Error generating response for model ${model}:`, errorMsg);
+      console.error(error);
+      
       return {
-        model: modelConfig.displayName,
-        text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        model,
+        text: `Error: ${errorMsg}`,
         latency_ms: 0,
         word_count: 0,
       };
