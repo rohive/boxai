@@ -78,21 +78,28 @@ export default function Home() {
       let responses: LLMResponse[] = [];
 
       if (supportedModels.length > 0) {
-        const response = await fetch('https://boxai-backend.vercel.app/ask', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query,
-            models: supportedModels,
-          }),
-        });
+        try {
+          const response = await fetch('/api/ask', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query,
+              models: supportedModels,
+            }),
+            credentials: 'include' // Important for cookies if using sessions
+          });
 
-        if (!response.ok) {
-          throw new Error('Failed to get responses');
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Failed to get responses');
+          }
+          responses = await response.json();
+        } catch (error) {
+          console.error('API Error:', error);
+          throw error;
         }
-        responses = await response.json();
       }
 
       // Add placeholders for unsupported models

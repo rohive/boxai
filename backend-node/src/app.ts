@@ -40,18 +40,36 @@ app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Routes
-app.get('/', (req: Request, res: Response) => {
-  res.json({ message: 'BoxAI API is running' });
+// API Routes
+const router = express.Router();
+
+// Health check endpoint
+router.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Routes
-app.get('/models', (req: Request, res: Response, next: NextFunction) => {
+// API endpoints
+router.get('/models', (req: Request, res: Response, next: NextFunction) => {
   listModels(req, res, next);
 });
 
-app.post('/ask', (req: Request, res: Response, next: NextFunction) => {
+router.post('/ask', (req: Request, res: Response, next: NextFunction) => {
   askQuestion(req, res, next);
+});
+
+// Mount API routes under /api
+app.use('/api', router);
+
+// Root endpoint
+app.get('/', (req: Request, res: Response) => {
+  res.json({ 
+    message: 'BoxAI API is running',
+    endpoints: [
+      'GET /api/health',
+      'GET /api/models',
+      'POST /api/ask'
+    ]
+  });
 });
 
 // 404 handler

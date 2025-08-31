@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "vercel-build.js",
+      "src": "backend-node/api/index.ts",
       "use": "@vercel/node"
     },
     {
@@ -11,10 +11,6 @@
       "config": {
         "distDir": ".next"
       }
-    },
-    {
-      "src": "backend-node/api/index.ts",
-      "use": "@vercel/node"
     }
   ],
   "routes": [
