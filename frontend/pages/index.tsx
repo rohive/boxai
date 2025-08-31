@@ -78,7 +78,7 @@ export default function Home() {
       let responses: LLMResponse[] = [];
 
       if (supportedModels.length > 0) {
-        const response = await fetch('http://localhost:8000/ask', {
+        const response = await fetch('https://boxai-backend.vercel.app/ask', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
