@@ -30,4 +30,14 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-export { app };
+const appInstance = app;
+
+// Only start the server if this file is run directly (not imported)
+if (require.main === module) {
+  const PORT = process.env.PORT || 8000;
+  appInstance.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+}
+
+export { appInstance as app };
