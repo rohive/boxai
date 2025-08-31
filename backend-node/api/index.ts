@@ -6,9 +6,19 @@ export default async function handler(
   res: VercelResponse
 ) {
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
+  const allowedOrigins = [
+    'https://boxai-iota.vercel.app',
+    'http://localhost:3000' // For local development
+  ];
+  
+  const origin = req.headers.origin || '';
+  if (allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.setHeader('Content-Type', 'application/json');
 
   // Handle preflight requests
