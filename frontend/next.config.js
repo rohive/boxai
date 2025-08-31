@@ -13,6 +13,25 @@ const nextConfig = {
     styledComponents: true,
   },
   trailingSlash: true,
+  // Disable server-side rendering for all pages
+  // This ensures we only do static generation
+  exportPathMap: async function() {
+    return {
+      '/': { page: '/' },
+      '/404': { page: '/404' },
+      '/500': { page: '/500' },
+    };
+  },
+  // Disable image optimization API since we're using unoptimized images
+  images: {
+    loader: 'custom',
+    loaderFile: './src/utils/imageLoader.js',
+  },
+  // Disable the default static export behavior for API routes
+  // since we're using an external API
+  api: {
+    bodyParser: false,
+  },
   async rewrites() {
     return [
       {

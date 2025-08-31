@@ -13,7 +13,11 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "dest": "/frontend/out/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/out/index.html"
     }
   ]
 }

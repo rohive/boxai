@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && next export",
+    "build": "next build",
     "start": "next start -p $PORT",
     "lint": "next lint",
-    "vercel-build": "next build && next export"
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@tailwindcss/forms": "^0.5.10",
