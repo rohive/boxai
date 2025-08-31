@@ -10,22 +10,24 @@
     "vercel-build": "next build"
   },
   "dependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "axios": "^1.6.0",
+    "classnames": "^2.3.2",
     "next": "14.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "axios": "^1.6.0",
-    "classnames": "^2.3.2",
     "react-icons": "^4.12.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.5",
-    "typescript": "^5.2.2",
     "@types/node": "^20.8.9",
     "@types/react": "^18.2.24",
     "@types/react-dom": "^18.2.8",
+    "autoprefixer": "^10.4.16",
     "eslint": "^8.52.0",
-    "eslint-config-next": "14.0.3"
+    "eslint-config-next": "14.0.3",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2"
   }
 }

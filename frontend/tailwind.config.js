@@ -1,12 +1,14 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  important: true, // Add !important to all utilities
+  mode: 'jit',
+  important: true, 
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './styles/**/*.css',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {

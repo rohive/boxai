@@ -1,9 +1,13 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === 'production';
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
+  assetPrefix: isProd ? '/frontend' : '',
+  basePath: isProd ? '/frontend' : '',
   images: {
     domains: [],
+    unoptimized: true,
   },
   async rewrites() {
     return [

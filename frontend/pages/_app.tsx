@@ -1,5 +1,8 @@
 import type { AppProps } from 'next/app';
+import { Inter } from 'next/font/google';
 import '../styles/globals.css';
+
+const inter = Inter({ subsets: ['latin'] });
 
 // Force Tailwind to include these classes
 const forceTailwindClasses = [
@@ -19,7 +22,7 @@ const forceTailwindClasses = [
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`${inter.className} min-h-screen bg-gray-50`}>
       <Component {...pageProps} />
     </div>
   );
