@@ -5,9 +5,21 @@ const nextConfig = {
   output: 'standalone',
   assetPrefix: isProd ? '/frontend' : '',
   basePath: isProd ? '/frontend' : '',
+  poweredByHeader: false,
+  generateEtags: false,
+  compress: true,
   images: {
     domains: [],
     unoptimized: true,
+    disableStaticImages: true,
+  },
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@heroicons/react', 'react-icons'],
+  },
+  compiler: {
+    // Enables the styled-components SWC transform
+    styledComponents: true,
   },
   async rewrites() {
     return [
