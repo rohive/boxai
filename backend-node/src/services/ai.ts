@@ -2,27 +2,50 @@ import { openAIService } from './openai';
 import { claudeService } from './claude';
 import { LLMResponse } from '../types';
 
+// Define model configuration type
 interface ModelConfig {
-  displayName: string;
+  id: string;           // Full model ID for the API
+  displayName: string;  // Display name for UI
   service: 'openai' | 'claude';
 }
 
-const MODEL_CONFIG: Record<string, ModelConfig> = {
+// Map of short names to full model configurations
+const MODEL_MAP: Record<string, ModelConfig> = {
+  // Short names (used by frontend) to model configs
+  'openai': {
+    id: 'gpt-3.5-turbo',
+    displayName: 'GPT-3.5',
+    service: 'openai',
+  },
+  'claude': {
+    id: 'claude-3-haiku-20240307', // Using Claude 3 Haiku for better reliability
+    displayName: 'Claude',
+    service: 'claude',
+  },
+  'gpt4': {
+    id: 'gpt-4',
+    displayName: 'GPT-4',
+    service: 'openai',
+  },
+  // Direct model IDs for backward compatibility
   'gpt-3.5-turbo': {
+    id: 'gpt-3.5-turbo',
     displayName: 'GPT-3.5',
     service: 'openai',
   },
   'gpt-4': {
+    id: 'gpt-4',
     displayName: 'GPT-4',
     service: 'openai',
   },
-  'claude-3-sonnet-20240229': {
+  'claude-3-haiku-20240307': {
+    id: 'claude-3-haiku-20240307',
     displayName: 'Claude',
     service: 'claude',
   },
 };
 
-type ModelKey = keyof typeof MODEL_CONFIG;
+type ModelKey = keyof typeof MODEL_MAP;
 
 export class AIService {
   private static instance: AIService;
@@ -42,7 +65,7 @@ export class AIService {
   ): Promise<LLMResponse> {
     const startTime = Date.now();
     const modelKey = model as ModelKey;
-    const modelConfig = MODEL_CONFIG[modelKey];
+    const modelConfig = MODEL_MAP[modelKey];
 
     if (!modelConfig) {
       throw new Error(`Unsupported model: ${model}`);
@@ -52,9 +75,9 @@ export class AIService {
 
     try {
       if (modelConfig.service === 'openai') {
-        text = await openAIService.generateResponse(prompt, model);
+        text = await openAIService.generateResponse(prompt, modelConfig.id);
       } else if (modelConfig.service === 'claude') {
-        text = await claudeService.generateResponse(prompt, model);
+        text = await claudeService.generateResponse(prompt, modelConfig.id);
       } else {
         throw new Error(`Unsupported service: ${modelConfig.service}`);
       }
@@ -81,10 +104,15 @@ export class AIService {
   }
 
   public getAvailableModels() {
-    return Object.entries(MODEL_CONFIG).map(([key, config]) => ({
-      id: key,
-      name: config.displayName,
-    }));
+    // Only return the short names for the frontend
+    const frontendModels = ['openai', 'claude', 'gpt4'] as const;
+    return frontendModels.map(key => {
+      const model = MODEL_MAP[key];
+      return {
+        id: key,
+        name: model.displayName,
+      };
+    });
   }
 }
 
