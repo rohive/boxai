@@ -1,82 +1,92 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { app } from '../src/app';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  console.log('Incoming request:', {
-    method: req.method,
-    url: req.url,
-    headers: req.headers,
-    query: req.query,
-    body: req.body
-  });
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Content-Type', 'application/json');
 
-  try {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader(
-      'Access-Control-Allow-Headers',
-      'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-V, Authorization'
-    );
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-      return res.status(200).end();
-    }
-
-  // Convert Vercel request/response to Express format
+  // Convert Vercel request to Express format
   const expressReq = {
     ...req,
     method: req.method,
-    url: req.url,
     headers: req.headers,
     query: req.query,
     body: req.body,
+    params: {},
+    cookies: {},
+    get: (name: string) => req.headers[name.toLowerCase()],
+    header: (name: string) => req.headers[name.toLowerCase()],
   } as any;
 
-  const expressRes = {
+  // Create Express-compatible response
+  const expressRes: any = {
     ...res,
-    status: (code: number) => ({
-      ...res,
-      statusCode: code,
-      json: (data: any) => res.status(code).json(data),
-      send: (data: any) => res.status(code).send(data),
-      end: () => res.status(code).end(),
-    }),
-    json: (data: any) => res.json(data),
-    send: (data: any) => res.send(data),
-    end: () => res.end(),
-  } as any;
-
-    // Handle the request with Express app
-    try {
-      console.log('Processing request with Express app');
-      await app(expressReq, expressRes);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const errorStack = error instanceof Error && process.env.NODE_ENV === 'development' 
-        ? error.stack 
-        : undefined;
-        
-      console.error('Error in Express app:', errorMessage);
-      res.status(500).json({ 
-        error: 'Internal server error',
-        message: errorMessage,
-        ...(errorStack && { stack: errorStack })
-      });
+    statusCode: 200,
+    status: function(code: number) {
+      this.statusCode = code;
+      return this;
+    },
+    json: function(data: any) {
+      return res.status(this.statusCode || 200).json(data);
+    },
+    send: function(data: any) {
+      if (typeof data === 'object') {
+        return res.status(this.statusCode || 200).json(data);
+      }
+      return res.status(this.statusCode || 200).send(data);
+    },
+    end: function() {
+      return res.status(this.statusCode || 200).end();
+    },
+    setHeader: function(name: string, value: string) {
+      res.setHeader(name, value);
+      return this;
+    },
+    getHeader: function(name: string) {
+      return res.getHeader(name);
+    },
+    removeHeader: function(name: string) {
+      res.removeHeader(name);
+      return this;
     }
+  };
+
+  // Handle the request with Express app
+  try {
+    console.log('Processing request with Express app');
+    await app(expressReq, expressRes, (err?: any) => {
+      if (err) {
+        console.error('Error in Express middleware chain:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        const errorStack = err instanceof Error ? err.stack : undefined;
+        
+        res.status(500).json({
+          error: 'Internal server error',
+          message: process.env.NODE_ENV === 'development' ? errorMessage : 'Something went wrong',
+          ...(process.env.NODE_ENV === 'development' && errorStack ? { stack: errorStack } : {})
+        });
+      }
+    });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error && process.env.NODE_ENV === 'development' 
-      ? error.stack 
-      : undefined;
-      
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     console.error('Top-level error in API handler:', errorMessage);
     res.status(500).json({ 
       error: 'Internal server error',
       message: errorMessage,
-      ...(errorStack && { stack: errorStack })
+      ...(process.env.NODE_ENV === 'development' && errorStack ? { stack: errorStack } : {})
     });
   }
 }
