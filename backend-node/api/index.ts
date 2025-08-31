@@ -53,20 +53,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       console.log('Processing request with Express app');
       await app(expressReq, expressRes);
-    } catch (error) {
-      console.error('Error in Express app:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error && process.env.NODE_ENV === 'development' 
+        ? error.stack 
+        : undefined;
+        
+      console.error('Error in Express app:', errorMessage);
       res.status(500).json({ 
         error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        message: errorMessage,
+        ...(errorStack && { stack: errorStack })
       });
     }
-  } catch (error) {
-    console.error('Top-level error in API handler:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error && process.env.NODE_ENV === 'development' 
+      ? error.stack 
+      : undefined;
+      
+    console.error('Top-level error in API handler:', errorMessage);
     res.status(500).json({ 
       error: 'Internal server error',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      message: errorMessage,
+      ...(errorStack && { stack: errorStack })
     });
   }
 }
