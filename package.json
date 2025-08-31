@@ -1,0 +1,12 @@
+{
+  "name": "boxai",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "./vercel-build.sh"
+  },
+  "workspaces": [
+    "frontend",
+    "backend-node"
+  ]
+}
